@@ -1,0 +1,13 @@
+{
+  "type": "backrooms:backrooms",
+  "generator": {
+    "type": "backrooms:backrooms",
+    "settings": {
+      "layers": [
+        { "height": 2,  "block": "minecraft:smooth_stone" },
+        { "height": 14, "block": "minecraft:air" }
+      ],
+      "biome": "backrooms:backrooms"
+    }
+  }
+}

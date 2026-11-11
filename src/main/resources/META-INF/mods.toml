@@ -1,0 +1,24 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="backrooms"
+version="${file.jarVersion}"
+displayName="The Backrooms (VIruss)"
+description='''You shouldn't be here... Bury yourself in sand to noclip into Level 0. Find the glitch block to escape.'''
+authors="VIruss"
+
+[[dependencies.backrooms]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.backrooms]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="BOTH"
