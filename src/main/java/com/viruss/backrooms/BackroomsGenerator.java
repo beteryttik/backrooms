@@ -1,51 +1,101 @@
 package com.viruss.backrooms;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
-import net.minecraft.world.level.ChunkAccess;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.FlatLevelSource;
-import net.minecraft.world.level.levelgen.FlatLevelGeneratorSettings;
-import net.minecraft.world.level.levelgen.RandomState;
-import net.minecraft.world.level.levelgen.StructureManager;
-import net.minecraft.world.level.levelgen.blender.Blender;
-
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.structure.StructureManager;
 
-/**
- * Level 0: endless yellow rooms.
- * Floor y0 (base) + y1 (carpet), walls y2..y4 on a 12-block grid with doorways,
- * ceiling y5 with fluorescent lamps every 8 blocks.
- */
-public class BackroomsGenerator extends FlatLevelSource {
-    public static final MapCodec<BackroomsGenerator> CODEC = RecordCodecBuilder.mapCodec(instance ->
+public class BackroomsGenerator extends ChunkGenerator {
+
+    public static final Codec<BackroomsGenerator> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    FlatLevelGeneratorSettings.CODEC.fieldOf("settings").forGetter(g -> g.settings)
-            ).apply(instance, BackroomsGenerator::new));
+                    BiomeSource.CODEC.fieldOf("biome_source").forGetter(g -> g.biomeSource)
+            ).apply(instance, BackroomsGenerator::new)
+    );
 
-    private final FlatLevelGeneratorSettings settings;
+    private static final int FLOOR_Y = 64;
+    private static final int CEIL_Y = 68;
 
-    public BackroomsGenerator(FlatLevelGeneratorSettings settings) {
-        super(settings);
-        this.settings = settings;
+    private static final BlockState FLOOR   = Blocks.YELLOW_WOOL.defaultBlockState();
+    private static final BlockState WALL    = Blocks.YELLOW_TERRACOTTA.defaultBlockState();
+    private static final BlockState CEILING = Blocks.LIGHT_GRAY_CONCRETE.defaultBlockState();
+    private static final BlockState LAMP    = Blocks.SEA_LANTERN.defaultBlockState();
+    private static final BlockState AIR     = Blocks.AIR.defaultBlockState();
+
+    public BackroomsGenerator(BiomeSource biomeSource) {
+        super(biomeSource);
     }
 
     @Override
-    protected MapCodec<? extends net.minecraft.world.level.levelgen.ChunkGenerator> codec() {
+    protected Codec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 
-    private static BlockState st(Block block) {
-        return block.defaultBlockState();
-    }
+    @Override
+    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, Blender blender, RandomState random,
+                                                        StructureManager structureManager, ChunkAccess chunk) {
+        ChunkPos cp = chunk.getPos();
+        int baseX = cp.getMinBlockX();
+        int baseZ = cp.getMinBlockZ();
 
-    private static int mod(int v, int m) {
-        return Mth.positiveModulo(v, m);
+        // сид на координаты чанка: у каждой "ячейки" своя судьба
+        RandomSource rng = RandomSource.create(baseX * 341873128712L + baseZ * 132897987541L + 911L);
+
+        boolean skipWest = rng.nextFloat() < 0.25F;
+        boolean skipNorth = rng.nextFloat() < 0.25F;
+        int door = 4 + rng.nextInt(8);
+
+        for (int lx = 0; lx < 16; lx++) {
+            for (int lz = 0; lz < 16; lz++) {
+                int x = baseX + lx;
+                int z = baseZ + lz;
+
+                set(chunk, x, FLOOR_Y, z, FLOOR);
+                for (int y = FLOOR_Y + 1; y < CEIL_Y; y++) {
+                    set(chunk, x, y, z, AIR);
+                }
+                set(chunk, x, CEIL_Y, z, (lx == 8 && lz == 8) ? LAMP : CEILING);
+            }
+        }
+
+        // западная стена ячейки (с проёмом-дверью)
+        if (!skipWest) {
+            for (int lz = 0; lz < 16; lz++) {
+                if (lz >= door && lz < door + 2) continue;
+                for (int y = FLOOR_Y + 1; y < CEIL_Y; y++) {
+                    set(chunk, baseX, y, baseZ + lz, WALL);
+                }
+            }
+        }
+        // северная стена ячейки
+        if (!skipNorth) {
+            for (int lx = 0; lx < 16; lx++) {
+                if (lx >= door && lx < door + 2) continue;
+                for (int y = FLOOR_Y + 1; y < CEIL_Y; y++) {
+                    set(chunk, baseX + lx, y, baseZ, WALL);
+                }
+            }
+        }
+
+        return CompletableFuture.completedFuture(chunk);
     }
 
     private static void set(ChunkAccess chunk, int x, int y, int z, BlockState state) {
@@ -53,41 +103,44 @@ public class BackroomsGenerator extends FlatLevelSource {
     }
 
     @Override
-    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, Blender blender, RandomState random,
-                                                        StructureManager structureManager, ChunkAccess chunk) {
-        BlockState base = st(Blocks.SMOOTH_STONE);
-        BlockState carpet = st(ModBlocks.CARPET.get());
-        BlockState wall = st(ModBlocks.WALLPAPER.get());
-        BlockState ceiling = st(ModBlocks.CEILING.get());
-        BlockState lamp = st(ModBlocks.LAMP.get());
-        int minY = chunk.getMinBuildHeight();
+    public void buildSurface(WorldGenRegion region, StructureManager structureManager, RandomState random, ChunkAccess chunk) {
+    }
 
-        for (int lz = 0; lz < 16; lz++) {
-            for (int lx = 0; lx < 16; lx++) {
-                int x = chunk.getPos().getMinBlockX() + lx;
-                int z = chunk.getPos().getMinBlockZ() + lz;
+    @Override
+    public void applyCarvers(WorldGenRegion region, long seed, RandomState random, BiomeManager biomeManager,
+                             StructureManager structureManager, ChunkAccess chunk, GenerationStep.Carving step) {
+    }
 
-                set(chunk, x, minY, z, base);
-                set(chunk, x, minY + 1, z, carpet);
-                set(chunk, x, minY + 5, z, ceiling);
+    @Override
+    public void spawnOriginalMobs(WorldGenRegion region) {
+    }
 
-                if (mod(x, 8) == 4 && mod(z, 8) == 4) {
-                    set(chunk, x, minY + 5, z, lamp);
-                }
+    @Override
+    public int getGenDepth() {
+        return 128;
+    }
 
-                boolean wallX = mod(x, 12) == 0;
-                boolean wallZ = mod(z, 12) == 0;
-                if (wallX != wallZ) {
-                    int along = wallX ? z : x;
-                    int d = mod(along, 12);
-                    if (d < 5 || d > 7) {
-                        for (int y = 2; y <= 4; y++) {
-                            set(chunk, x, minY + y, z, wall);
-                        }
-                    }
-                }
-            }
-        }
-        return CompletableFuture.completedFuture(chunk);
+    @Override
+    public int getMinY() {
+        return 0;
+    }
+
+    @Override
+    public int getSeaLevel() {
+        return 0;
+    }
+
+    @Override
+    public int getBaseHeight(int x, int z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+        return FLOOR_Y + 1;
+    }
+
+    @Override
+    public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor level, RandomState random) {
+        return new NoiseColumn(FLOOR_Y, new BlockState[]{FLOOR});
+    }
+
+    @Override
+    public void addDebugScreenInfo(List<String> info, RandomState random, BlockPos pos) {
     }
 }
