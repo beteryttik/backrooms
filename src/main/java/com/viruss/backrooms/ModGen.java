@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 public class ModGen {
-    public static final String MOD_ID = "virussbackrooms";
+    public static final String MOD_ID = "backrooms";
 
     // Ключ измерения. Должен совпадать с путём JSON:
     // data/virussbackrooms/dimension/backrooms.json  ->  virussbackrooms:backrooms
