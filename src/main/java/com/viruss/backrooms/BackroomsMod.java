@@ -1,12 +1,16 @@
+
 package com.viruss.backrooms;
 
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-@Mod(BackroomsMod.MOD_ID)
+@Mod(BackroomsMod.MODID)
 public class BackroomsMod {
-    public static final String MOD_ID = "virussbackrooms";
+    // Оригинальное имя константы — на него ссылаются SandCrushHandler, ModItems и ClientSetup
+    public static final String MODID = "virussbackrooms";
+    // Псевдоним для ModBlocks (он использует MOD_ID)
+    public static final String MOD_ID = MODID;
 
     public BackroomsMod() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
