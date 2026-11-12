@@ -15,6 +15,6 @@ public class BackroomsMod {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         ModBlocks.register(bus);
         ModItems.ITEMS.register(bus);
-        ModGen.register();
+        ModGen.register(bus);
     }
 }
