@@ -1,6 +1,6 @@
 package com.viruss.backrooms;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +26,7 @@ import net.minecraft.world.level.StructureManager;
 
 public class BackroomsGenerator extends ChunkGenerator {
 
-    public static final Codec<BackroomsGenerator> CODEC = RecordCodecBuilder.create(instance ->
+    public static final MapCodec<BackroomsGenerator> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     BiomeSource.CODEC.fieldOf("biome_source").forGetter(g -> g.biomeSource)
             ).apply(instance, BackroomsGenerator::new)
@@ -46,7 +46,7 @@ public class BackroomsGenerator extends ChunkGenerator {
     }
 
     @Override
-    protected Codec<? extends ChunkGenerator> codec() {
+    protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 
