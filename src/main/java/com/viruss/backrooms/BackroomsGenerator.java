@@ -21,7 +21,8 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.Blender;
-import net.minecraft.world.level.levelgen.structure.StructureManager;
+import net.minecraft.world.level.StructureManager;
+
 
 public class BackroomsGenerator extends ChunkGenerator {
 
