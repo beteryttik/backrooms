@@ -1,6 +1,6 @@
 package com.viruss.backrooms;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -18,10 +18,10 @@ public class ModGen {
     public static final ResourceKey<Level> BACKROOMS_LEVEL =
             ResourceKey.create(Registries.DIMENSION, new ResourceLocation(MOD_ID, "backrooms"));
 
-    private static final DeferredRegister<MapCodec<? extends ChunkGenerator>> GENERATORS =
+    private static final DeferredRegister<Codec<? extends ChunkGenerator>> GENERATORS =
             DeferredRegister.create(Registries.CHUNK_GENERATOR, MOD_ID);
 
-    public static final RegistryObject<MapCodec<? extends ChunkGenerator>> BACKROOMS_CODEC =
+    public static final RegistryObject<Codec<? extends ChunkGenerator>> BACKROOMS_CODEC =
             GENERATORS.register("backrooms", () -> BackroomsGenerator.CODEC);
 
     public static void register(IEventBus bus) {
