@@ -17,11 +17,11 @@ import net.minecraftforge.registries.RegistryObject;
 public class ModBlocks {
 
     public static final DeferredRegister<Block> BLOCKS =
-            DeferredRegister.create(ForgeRegistries.BLOCKS, Backrooms.MOD_ID);
+            DeferredRegister.create(ForgeRegistries.BLOCKS, BackroomsMod.MOD_ID);
     public static final DeferredRegister<Item> ITEMS =
-            DeferredRegister.create(ForgeRegistries.ITEMS, Backrooms.MOD_ID);
+            DeferredRegister.create(ForgeRegistries.ITEMS, BackroomsMod.MOD_ID);
     public static final DeferredRegister<CreativeModeTab> TABS =
-            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Backrooms.MOD_ID);
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, BackroomsMod.MOD_ID);
 
     public static final RegistryObject<Block> WET_CARPET = BLOCKS.register("wet_carpet",
             () -> new Block(BlockBehaviour.Properties.of()
