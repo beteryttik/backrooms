@@ -1,4 +1,3 @@
-
 package com.viruss.backrooms;
 
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -7,9 +6,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(BackroomsMod.MODID)
 public class BackroomsMod {
-    // Оригинальное имя константы — на него ссылаются SandCrushHandler, ModItems и ClientSetup
-    public static final String MODID = "virussbackrooms";
-    // Псевдоним для ModBlocks (он использует MOD_ID)
+    // Должно совпадать с modId в META-INF/mods.toml
+    public static final String MODID = "backrooms";
+    // Псевдоним для ModBlocks
     public static final String MOD_ID = MODID;
 
     public BackroomsMod() {
